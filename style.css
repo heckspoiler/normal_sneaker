@@ -33,3 +33,52 @@ a {
   color: currentColor;
   text-decoration: none;
 }
+
+a.button {
+  display: inline-block;
+  color: var(--primary-color);
+  background-color: var(--secondary-color);
+  padding: 0.25rem 0.75rem 0.15rem 0.75rem;
+  border-radius: 0.25rem;
+}
+
+header {
+  position: sticky;
+  top: 0;
+  left: 0;
+  width: 100%;
+
+  padding: 1rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  height: 4rem;
+}
+
+header h1 {
+  font-size: 1rem;
+  font-weight: 400;
+}
+
+header nav {
+  display: flex;
+  gap: 1rem;
+  align-items: baseline;
+}
+
+section.new-drop {
+  min-height: calc(100vh - 4rem);
+  padding: 2rem;
+
+  display: flex;
+  align-items: flex-end;
+}
+
+section.new-drop img {
+  width: 100%;
+}
+
+section.content {
+  padding: 2rem;
+}
