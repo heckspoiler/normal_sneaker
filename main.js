@@ -8,7 +8,11 @@ import {
   TorusKnotGeometry,
   AmbientLight,
   DirectionalLight,
+  Group,
 } from 'three';
+
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
 import './style.css';
 
 // tag selection
@@ -64,22 +68,63 @@ sneakerTag.appendChild(renderer.domElement);
 // Lighting
 
 const ambience = new AmbientLight(0xfffffff);
-const keyLight = new DirectionalLight(0xffffff, 1);
 
+camera.add(ambience);
+
+const keyLight = new DirectionalLight(0xffffff, 1);
 keyLight.position.set(-1, 1, 3);
 
-scene.add(ambience, keyLight);
+camera.add(keyLight);
+
+const fillLight = new DirectionalLight(0xffffff, 0.5);
+fillLight.position.set(1, 1, 3);
+
+camera.add(fillLight);
+
+const backLight = new DirectionalLight(0xffffff, 1);
+backLight.position.set(1, 3, -1);
+
+camera.add(backLight);
 
 const geometry = new TorusKnotGeometry(1, 0.25, 100, 10);
 const material = new MeshLambertMaterial({ color: 0xffff00, wireframe: false });
-const cube = new Mesh(geometry, material);
-scene.add(cube);
+const shape = new Mesh(geometry, material);
+
+scene.add(camera);
+
+const loadGroup = new Group();
+
+loadGroup.position.y = -10;
+loadGroup.add(shape);
+
+const scrollGroup = new Group();
+scrollGroup.add(loadGroup);
+
+scene.add(scrollGroup);
+
+animate(
+  (t) => {
+    loadGroup.position.y = -10 + 10 * t;
+  },
+  { duration: 2, delay: 0.5 }
+);
+
+// controls
+
+const controls = new OrbitControls(camera, renderer.domElement);
+
+controls.enableZoom = false;
+controls.enablePan = false;
+controls.autoRotate = true;
+controls.autoRotateSpeed = 1;
+
+controls.update();
 
 camera.position.z = 5;
 
 const render = () => {
-  cube.rotation.x += 0.005;
-  cube.rotation.y += 0.005;
+  controls.update();
+  scrollGroup.rotation.set(0, window.scrollY * 0.001, 0);
   requestAnimationFrame(render);
   renderer.render(scene, camera);
 };
