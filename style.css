@@ -1,0 +1,35 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+@font-face {
+  font-family: Bebas Neue;
+  src: url("/BebasNeue-Regular.otf");
+}
+
+html {
+  font-family: Bebas Neue;
+  font-size: 24px;
+}
+
+:root {
+  --primary-color: #0a0a0a;
+  --secondary-color: #ffffff
+}
+
+body {
+  background-color: var(--primary-color);
+  color: var(--secondary-color)
+}
+
+img {
+  max-width: 100%;
+  vertical-align: bottom;
+}
+
+a {
+  color: currentColor;
+  text-decoration: none;
+}
