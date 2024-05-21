@@ -2,6 +2,7 @@ import { animate, inView } from 'motion';
 import {
   Scene,
   PerspectiveCamera,
+  Clock,
   WebGLRenderer,
   MeshLambertMaterial,
   Mesh,
@@ -12,12 +13,23 @@ import {
 } from 'three';
 
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+import { NoiseShader } from './noise-shader';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 
 import './style.css';
 
 // tag selection
 
 const sneakerTag = document.querySelector('.sneaker');
+let currentEffect = 0;
+let aimEffect = 0;
+let timeOutEffect;
+
+const OBJloader = new OBJLoader();
 
 // motion one
 
@@ -44,13 +56,19 @@ animate(
   }
 );
 
-animate('section.content', { opacity: 0 });
+animate('section.content p, section.content img', { opacity: 0 });
 
 inView('section.content', (info) => {
-  animate(info.target, { opacity: 1 }, { duration: 1, delay: 1 });
+  animate(
+    info.target.querySelectorAll('p, img'),
+    { opacity: 1 },
+    { duration: 1, delay: 1 }
+  );
 });
 
 // three.js
+
+const clock = new Clock();
 
 const scene = new Scene();
 const camera = new PerspectiveCamera(
@@ -88,14 +106,27 @@ camera.add(backLight);
 
 const geometry = new TorusKnotGeometry(1, 0.25, 100, 10);
 const material = new MeshLambertMaterial({ color: 0xffff00, wireframe: false });
-const shape = new Mesh(geometry, material);
 
 scene.add(camera);
 
 const loadGroup = new Group();
 
 loadGroup.position.y = -10;
-loadGroup.add(shape);
+
+// object import
+
+OBJloader.load(
+  'MemoryCard.obj',
+  (object) => {
+    loadGroup.add(object);
+  },
+  function (xhr) {
+    console.log((xhr.loaded / xhr.total) * 100 + '% loaded');
+  },
+  function (error) {
+    console.log('An error happened');
+  }
+);
 
 const scrollGroup = new Group();
 scrollGroup.add(loadGroup);
@@ -120,12 +151,52 @@ controls.autoRotateSpeed = 1;
 
 controls.update();
 
-camera.position.z = 5;
+camera.position.z = 6;
+
+// composer (for post processing)
+
+const composer = new EffectComposer(renderer);
+
+const renderPass = new RenderPass(scene, camera);
+composer.addPass(renderPass);
+
+const noisePass = new ShaderPass(NoiseShader);
+noisePass.uniforms.time.value = clock.getElapsedTime();
+noisePass.uniforms.effect.value = currentEffect;
+noisePass.uniforms.aspectRatio.value = window.innerWidth / window.innerHeight;
+composer.addPass(noisePass);
+
+const outputPass = new OutputPass();
+composer.addPass(outputPass);
 
 const render = () => {
   controls.update();
+
+  currentEffect += (aimEffect - currentEffect) * 0.02;
   scrollGroup.rotation.set(0, window.scrollY * 0.001, 0);
+  noisePass.uniforms.time.value = clock.getElapsedTime();
+  noisePass.uniforms.effect.value = currentEffect;
   requestAnimationFrame(render);
-  renderer.render(scene, camera);
+  composer.render();
 };
+
+const resize = () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  noisePass.uniforms.aspectRatio.value = window.innerWidth / window.innerHeight;
+  renderer.setSize(window.innerWidth, window.innerHeight);
+};
+
+const scroll = () => {
+  clearTimeout(timeOutEffect);
+  aimEffect = 1;
+
+  timeOutEffect = setTimeout(() => {
+    aimEffect = 0;
+  }, 200);
+};
+
 render();
+
+window.addEventListener('resize', resize);
+window.addEventListener('scroll', scroll);

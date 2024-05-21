@@ -59,6 +59,7 @@ header {
 header h1 {
   font-size: 1rem;
   font-weight: 400;
+
 }
 
 header nav {
@@ -83,6 +84,8 @@ section.new-drop {
   display: flex;
   align-items: flex-end;
 }
+
+
 
 section.new-drop img {
   width: 100%;
